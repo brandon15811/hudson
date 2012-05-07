@@ -2,6 +2,7 @@
 <manifest>
   <remote fetch="git://github.com/" name="private" />
   <remote fetch="git://github.com/MotoMagic/" name="motomagic" review="review.motomagic.org" />
+  <remote fetch="git://gist.github.com" name="gist" />
   <project name="koush/proprietary_vendor_akm" path="vendor/akm" remote="github" />
   <project name="koush/proprietary_vendor_broadcom" path="vendor/broadcom" remote="github" />
   <project name="koush/proprietary_vendor_htc" path="vendor/htc" remote="github" />
@@ -21,5 +22,5 @@
   <project name="turl/atrix-wifi-module" path="kernel/motorola/olympus/wifi-module" remote="private" revision="CM_kernel" />
   <project name="android_packages_apps_Usb" path="packages/apps/Usb" remote="motomagic" revision="ics" />
   <project name="Atrix-Dev-Team/android_packages_apps_DockAudio" path="packages/apps/DockAudio" remote="private" revision="gingerbread" />
-
+  <project path="patch" name="2600592.git" remote="gist" revision="master"/>
 </manifest>
