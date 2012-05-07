@@ -90,7 +90,7 @@ echo Sync complete.
 cd $WORKSPACE/$REPO_BRANCH
 if [ -f $HUDSON_DIR/$REPO_BRANCH-setup.sh ]
 then
-  $HUDSON_DIR/$REPO_BRANCH-setup.sh
+  $HUDSON_DIR/$REPO_BRANCH-setup.sh $WORKSPACE $REPO_BRANCH
 fi
 
 # colorization fix in Jenkins (override yellow color)
