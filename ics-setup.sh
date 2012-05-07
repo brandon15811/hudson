@@ -10,6 +10,8 @@ cd vendor/cm
 git apply $WORKSPACE/$REPO_BRANCH/patch/vendor-cm
 
 #camera patch
+cd $WORKSPACE/$REPO_BRANCH
+cd frameworks/base
 git apply $WORKSPACE/$REPO_BRANCH/patch/frameworks-base-camera
 
 #memory patch
