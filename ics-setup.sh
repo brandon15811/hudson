@@ -6,9 +6,9 @@ vendor/cm/get-prebuilts
 cd $WORKSPACE/$REPO_BRANCH
 
 #device patch
-echo "Patching vendor/cm"
+echo "Adding Atrix/Olympus to vendorsetup.sh"
 cd vendor/cm
-git apply $WORKSPACE/$REPO_BRANCH/patch/vendor-cm
+echo "add_lunch_combo cm_olympus-userdebug" >> vendorsetup.sh
 
 #camera patch
 echo "Patching Camera"
