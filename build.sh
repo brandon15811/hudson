@@ -99,7 +99,7 @@ export CL_PFX="\"\033[34m\""
 export CL_INS="\"\033[32m\""
 export CL_RST="\"\033[0m\""
 export USE_CCACHE=1
-:<<supercalifragilisticexpialidocious
+
 cd $WORKSPACE/$REPO_BRANCH
 echo "We are ready to build in $WORKSPACE/$REPO_BRANCH"
 
@@ -140,4 +140,4 @@ cp $OUT/*.zip* $WORKSPACE/archive/
 
 # archive the build.prop as well
 cat $OUT/system/build.prop > $WORKSPACE/archive/build.prop
-supercalifragilisticexpialidocious
+
