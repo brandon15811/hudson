@@ -8,7 +8,7 @@ cd $WORKSPACE/$REPO_BRANCH
 #device patch
 echo "Adding Atrix/Olympus to vendorsetup.sh"
 cd vendor/cm
-echo "add_lunch_combo cm_olympus-userdebug" >> vendorsetup.sh
+#echo "add_lunch_combo cm_olympus-userdebug" >> vendorsetup.sh
 
 #camera patch
 echo "Patching Camera"
