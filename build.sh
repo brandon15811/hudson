@@ -86,7 +86,7 @@ echo Syncing...
 repo sync -j 32 -f 2>$WORKSPACE/archive/reposync.log
 check_result repo sync failed.
 echo Sync complete.
-
+:<<puddipuddipuddipuddi
 cd $WORKSPACE/$REPO_BRANCH
 if [ -f $HUDSON_DIR/$REPO_BRANCH-setup.sh ]
 then
@@ -140,4 +140,4 @@ cp $OUT/*.zip* $WORKSPACE/archive/
 
 # archive the build.prop as well
 cat $OUT/system/build.prop > $WORKSPACE/archive/build.prop
-
+puddipuddipuddipuddi
