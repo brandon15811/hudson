@@ -41,6 +41,7 @@ unset BUILD_NUMBER
 
 export PATH=~/bin:$PATH
 
+:<<qazwsxedc
 REPO=$(which repo)
 if [ -z "$REPO" ]; then
   mkdir -p ~/bin
@@ -57,6 +58,7 @@ if [ -z "$REPO_MANIFEST" ]; then
 fi
 
 cd $WORKSPACE
+
 if [ ! -d "$REPO_BRANCH" ]
 then
   mkdir $REPO_BRANCH
@@ -86,6 +88,8 @@ echo Syncing...
 repo sync -j 32 -f 2>$WORKSPACE/archive/reposync.log
 check_result repo sync failed.
 echo Sync complete.
+qazwsxedc
+
 :<<puddipuddipuddipuddi
 cd $WORKSPACE/$REPO_BRANCH
 if [ -f $HUDSON_DIR/$REPO_BRANCH-setup.sh ]
