@@ -154,3 +154,5 @@ mv $WORKSPACE/archive/update-squished.zip $WORKSPACE/archive/update-cm-9-`date +
 # archive the build.prop as well
 cat $OUT/system/build.prop > $WORKSPACE/archive/build.prop
 puddipuddi
+
+echo "hihihi" > $WORKSPACE/archive/hihi.txt
