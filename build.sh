@@ -90,7 +90,7 @@ check_result repo sync failed.
 echo Sync complete.
 qazwsxedc
 
-:<<puddipuddipuddipuddi
+
 cd $WORKSPACE/$REPO_BRANCH
 if [ -f $HUDSON_DIR/$REPO_BRANCH-setup.sh ]
 then
@@ -132,11 +132,17 @@ then
   ccache -M 5G
 fi
 
+
 rm -f $OUT/*.zip*
 make $CLEAN_TYPE
 
 mka -j$CORES bacon
 check_result Build failed.
+
+echo "Files in $OUT"
+echo "############################################"
+ls -l $OUT
+echo "############################################"
 
 # Files to keep
 find $OUT/*.zip* | grep ota | xargs rm -f
@@ -144,4 +150,4 @@ cp $OUT/*.zip* $WORKSPACE/archive/
 
 # archive the build.prop as well
 cat $OUT/system/build.prop > $WORKSPACE/archive/build.prop
-puddipuddipuddipuddi
+
