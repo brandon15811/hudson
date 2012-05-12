@@ -90,10 +90,11 @@ check_result repo sync failed.
 echo Sync complete.
 qazwsxedc
 
-
+echo "About to do $HUDSON_DIR/$REPO_BRANCH-setup.sh"
 cd $WORKSPACE/$REPO_BRANCH
 if [ -f $HUDSON_DIR/$REPO_BRANCH-setup.sh ]
 then
+  echo "Doing $HUDSON_DIR/$REPO_BRANCH-setup.sh"
   $HUDSON_DIR/$REPO_BRANCH-setup.sh $WORKSPACE $REPO_BRANCH
 fi
 
