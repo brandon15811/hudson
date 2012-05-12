@@ -149,6 +149,8 @@ echo "############################################"
 find $OUT/*.zip* | grep ota | xargs rm -f
 cp $OUT/*.zip* $WORKSPACE/archive/
 
+mv $WORKSPACE/archive/update-squished.zip $WORKSPACE/archive/update-cm-9-`date +%Y%m%d`-NIGHTLY-olympus-signed.zip
+
 # archive the build.prop as well
 cat $OUT/system/build.prop > $WORKSPACE/archive/build.prop
 
