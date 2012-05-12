@@ -41,8 +41,8 @@ unset BUILD_NUMBER
 
 export PATH=~/bin:$PATH
 
-:<<qazwsxedc
-REPO=$(which repo)
+
+#REPO=$(which repo)
 if [ -z "$REPO" ]; then
   mkdir -p ~/bin
   curl -s -S https://dl-ssl.google.com/dl/googlesource/git-repo/repo > ~/bin/repo
@@ -67,10 +67,10 @@ then
     cp -R $BOOTSTRAP/.repo $REPO_BRANCH
   fi
   cd $REPO_BRANCH
-  repo init -u git://github.com/$REPO_MANIFEST/android.git -b $REPO_BRANCH
+  #repo init -u git://github.com/$REPO_MANIFEST/android.git -b $REPO_BRANCH
 else
   cd $REPO_BRANCH
-  repo init -u git://github.com/$REPO_MANIFEST/android.git -b $REPO_BRANCH
+  #repo init -u git://github.com/$REPO_MANIFEST/android.git -b $REPO_BRANCH
 fi
 
 # make sure ccache is in PATH
@@ -82,13 +82,13 @@ then
 fi
 
 HUDSON_DIR=$WORKSPACE/hudson
-cp $HUDSON_DIR/$REPO_BRANCH.xml $WORKSPACE/$REPO_BRANCH/.repo/local_manifest.xml
+#cp $HUDSON_DIR/$REPO_BRANCH.xml $WORKSPACE/$REPO_BRANCH/.repo/local_manifest.xml
 
-echo Syncing...
-repo sync -j 32 -f 2>$WORKSPACE/archive/reposync.log
-check_result repo sync failed.
-echo Sync complete.
-qazwsxedc
+#echo Syncing...
+#repo sync -j 32 -f 2>$WORKSPACE/archive/reposync.log
+#check_result repo sync failed.
+#echo Sync complete.
+
 
 echo "About to do $HUDSON_DIR/$REPO_BRANCH-setup.sh"
 cd $WORKSPACE/$REPO_BRANCH
