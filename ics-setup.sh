@@ -1,6 +1,7 @@
 WORKSPACE=$1
 REPO_BRANCH=$2
 
+echo "Exec'ing vendor/cm/get-prebuilts"
 vendor/cm/get-prebuilts
 
 cd $WORKSPACE/$REPO_BRANCH
