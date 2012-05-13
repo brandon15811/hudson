@@ -59,16 +59,8 @@ fi
 
 cd $WORKSPACE
 
-if [ ! -d "$REPO_BRANCH" ]
+if [ -d "$REPO_BRANCH" ]
 then
-  #mkdir $REPO_BRANCH
-  if [ ! -z "$BOOTSTRAP" -a -d "$BOOTSTRAP" ]; then
-    #echo Bootstrapping repo with: $BOOTSTRAP
-    #cp -R $BOOTSTRAP/.repo $REPO_BRANCH
-  fi
-  #cd $REPO_BRANCH
-  #repo init -u git://github.com/$REPO_MANIFEST/android.git -b $REPO_BRANCH
-else
   cd $REPO_BRANCH
   #repo init -u git://github.com/$REPO_MANIFEST/android.git -b $REPO_BRANCH
 fi
