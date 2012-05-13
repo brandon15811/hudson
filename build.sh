@@ -39,7 +39,7 @@ mkdir -p $WORKSPACE/archive
 export BUILD_NO=$BUILD_NUMBER
 unset BUILD_NUMBER
 
-export PATH=~/bin:$PATH
+export PATH=/mnt/bin:~/bin:$PATH
 
 
 #REPO=$(which repo)
