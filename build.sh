@@ -4,7 +4,6 @@ function check_result {
   if [ "0" -ne "$?" ]
   then
     echo $1 step failed !
-    cat $WORKSPACE/archive/reposync.log
     exit 1
   fi
 }
@@ -144,7 +143,6 @@ cp $OUT/*.zip* $WORKSPACE/archive/
 mv $WORKSPACE/archive/update-squished.zip $WORKSPACE/archive/update-cm-9-`date +%Y%m%d`-NIGHTLY-olympus-signed.zip
 
 # archive the build.prop as well
-cat $OUT/system/build.prop > $WORKSPACE/archive/build.prop
 
 
 echo "hihihi" > $WORKSPACE/archive/hihi.txt
