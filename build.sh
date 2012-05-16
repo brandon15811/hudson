@@ -79,13 +79,6 @@ then
 fi
 
 HUDSON_DIR=$WORKSPACE/hudson
-#cp $HUDSON_DIR/$REPO_BRANCH.xml $WORKSPACE/$REPO_BRANCH/.repo/local_manifest.xml
-
-#echo Syncing...
-#repo sync -j 32 -f 2>$WORKSPACE/archive/reposync.log
-#check_result repo sync failed.
-#echo Sync complete.
-
 
 echo "About to do $HUDSON_DIR/$REPO_BRANCH-setup.sh"
 cd $WORKSPACE/$REPO_BRANCH
@@ -168,9 +161,9 @@ then
   cp $OUT/recovery.img $WORKSPACE/archive
 fi
 
-mv $WORKSPACE/archive/update-squished.zip $WORKSPACE/archive/update-cm-9-`date +%Y%m%d`-NIGHTLY-olympus-signed.zip
 
 # archive the build.prop as well
+cat $OUT/system/build.prop > $WORKSPACE/archive/build.prop
 
 chmod -R ugo+r $WORKSPACE/archive
 echo "hihihi" > $WORKSPACE/archive/hihi.txt
