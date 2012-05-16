@@ -133,9 +133,9 @@ then
   fi
 fi
 
-if [ ! "$(ccache -s|grep -E 'max cache size'|awk '{print $4}')" = "5.0" ]
+if [ ! "$(ccache -s|grep -E 'max cache size'|awk '{print $4}')" = "20.0" ]
 then
-  ccache -M 5G
+  ccache -M 20G
 fi
 
 rm -f $OUT/*.zip*
