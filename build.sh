@@ -8,30 +8,46 @@ function check_result {
   fi
 }
 
-if [ -z "$WORKSPACE" ]; then
+if [ -z "$HOME" ]
+then
+  echo HOME not in environment, guessing...
+  export HOME=$(awk -F: -v v="$USER" '{if ($1==v) print $6}' /etc/passwd)
+fi
+
+if [ -z "$WORKSPACE" ]
+then
   echo WORKSPACE not specified
   exit 1
 fi
 
-if [ -z "$CLEAN_TYPE" ]; then
+if [ -z "$CLEAN_TYPE" ]
+then
   echo CLEAN_TYPE not specified
   exit 1
 fi
 
-if [ -z "$REPO_BRANCH" ]; then
+if [ -z "$REPO_BRANCH" ]
+then
   echo REPO_BRANCH not specified
   exit 1
 fi
 
-if [ -z "$LUNCH" ]; then
+if [ -z "$LUNCH" ]
+then
   echo LUNCH not specified
   exit 1
 fi
 
-if [ -z "$RELEASE_TYPE" ]; then
+if [ -z "$RELEASE_TYPE" ]
+then
   echo RELEASE_TYPE not specified
   exit 1
 fi
+
+# colorization fix in Jenkins
+export CL_PFX="\"\033[34m\""
+export CL_INS="\"\033[32m\""
+export CL_RST="\"\033[0m\""
 
 rm -rf $WORKSPACE/archive
 mkdir -p $WORKSPACE/archive
@@ -40,29 +56,19 @@ unset BUILD_NUMBER
 
 export PATH=/mnt/bin:~/bin:$PATH
 
+export USE_CCACHE=1
+export BUILD_WITH_COLORS=0
 
 #REPO=$(which repo)
-if [ -z "$REPO" ]; then
+if [ -z "$REPO" ]
+then
   mkdir -p ~/bin
-  curl -s -S https://dl-ssl.google.com/dl/googlesource/git-repo/repo > ~/bin/repo
+  curl https://dl-ssl.google.com/dl/googlesource/git-repo/repo > ~/bin/repo
   chmod a+x ~/bin/repo
 fi
 
 # git config --global user.name $(whoami)@$NODE_NAME
 # git config --global user.email jenkins@cyanogenmod.com
-
-# Repo manifest
-if [ -z "$REPO_MANIFEST" ]; then
-  REPO_MANIFEST=CyanogenMod
-fi
-
-cd $WORKSPACE
-
-if [ -d "$REPO_BRANCH" ]
-then
-  cd $REPO_BRANCH
-  #repo init -u git://github.com/$REPO_MANIFEST/android.git -b $REPO_BRANCH
-fi
 
 # make sure ccache is in PATH
 export PATH="$PATH:/opt/local/bin/:$PWD/prebuilt/$(uname|awk '{print tolower($0)}')-x86/ccache"
@@ -89,13 +95,6 @@ then
   $HUDSON_DIR/$REPO_BRANCH-setup.sh $WORKSPACE $REPO_BRANCH
 fi
 
-# colorization fix in Jenkins (override yellow color)
-export BUILD_WITH_COLORS=0
-export CL_PFX="\"\033[34m\""
-export CL_INS="\"\033[32m\""
-export CL_RST="\"\033[0m\""
-export USE_CCACHE=1
-
 cd $WORKSPACE/$REPO_BRANCH
 echo "We are ready to build in $WORKSPACE/$REPO_BRANCH"
 
@@ -103,27 +102,48 @@ echo "We are ready to build in $WORKSPACE/$REPO_BRANCH"
 lunch $LUNCH
 check_result lunch failed.
 
-export USE_CCACHE=1
+rm -f $OUT/update*.zip*
 
 UNAME=$(uname)
 if [ "$RELEASE_TYPE" = "CM_NIGHTLY" ]
 then
-  export CYANOGEN_NIGHTLY=true
-  export CM_NIGHTLY=true
+  if [ "$REPO_BRANCH" = "gingerbread" ]
+  then
+    export CYANOGEN_NIGHTLY=true
+  else
+    export CM_NIGHTLY=true
+  fi
 elif [ "$RELEASE_TYPE" = "CM_SNAPSHOT" ]
 then
   export CM_SNAPSHOT=true
 elif [ "$RELEASE_TYPE" = "CM_RELEASE" ]
 then
-  export CYANOGEN_RELEASE=true
   export CM_RELEASE=true
+fi
+
+if [ ! -z "$CM_EXTRAVERSION" ]
+then
+  export CM_SNAPSHOT=true
+fi
+
+if [ ! -z "$GERRIT_CHANGES" ]
+then
+  export CM_SNAPSHOT=true
+  IS_HTTP=$(echo $GERRIT_CHANGES | grep http)
+  if [ -z "$IS_HTTP" ]
+  then
+    python $WORKSPACE/hudson/repopick.py $GERRIT_CHANGES
+    check_result "gerrit picks failed."
+  else
+    python $WORKSPACE/hudson/repopick.py $(curl $GERRIT_CHANGES)
+    check_result "gerrit picks failed."
+  fi
 fi
 
 if [ ! "$(ccache -s|grep -E 'max cache size'|awk '{print $4}')" = "5.0" ]
 then
   ccache -M 5G
 fi
-
 
 rm -f $OUT/*.zip*
 make $CLEAN_TYPE
@@ -138,11 +158,19 @@ echo "############################################"
 
 # Files to keep
 find $OUT/*.zip* | grep ota | xargs rm -f
-cp $OUT/*.zip* $WORKSPACE/archive/
+cp $OUT/update*.zip* $WORKSPACE/archive
+if [ -f $OUT/utilties/update.zip ]
+then
+  cp $OUT/utilties/update.zip $WORKSPACE/archive/recovery.zip
+fi
+if [ -f $OUT/recovery.img ]
+then
+  cp $OUT/recovery.img $WORKSPACE/archive
+fi
 
 mv $WORKSPACE/archive/update-squished.zip $WORKSPACE/archive/update-cm-9-`date +%Y%m%d`-NIGHTLY-olympus-signed.zip
 
 # archive the build.prop as well
 
-
+chmod -R ugo+r $WORKSPACE/archive
 echo "hihihi" > $WORKSPACE/archive/hihi.txt
