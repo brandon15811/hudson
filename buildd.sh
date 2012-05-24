@@ -139,9 +139,11 @@ then
 fi
 
 rm -f $OUT/*.zip*
+rm -f $OUT/boot.img*
 make $CLEAN_TYPE
 
-mka -j$CORES bacon
+#mka -j$CORES bacon
+make bootimage
 check_result Build failed.
 
 echo "Files in $OUT"
@@ -150,20 +152,20 @@ ls -l $OUT
 echo "############################################"
 
 # Files to keep
-find $OUT/*.zip* | grep ota | xargs rm -f
-cp $OUT/update*.zip* $WORKSPACE/archive
-if [ -f $OUT/utilties/update.zip ]
-then
-  cp $OUT/utilties/update.zip $WORKSPACE/archive/recovery.zip
-fi
-if [ -f $OUT/recovery.img ]
-then
-  cp $OUT/recovery.img $WORKSPACE/archive
-fi
+#find $OUT/*.zip* | grep ota | xargs rm -f
+#cp $OUT/update*.zip* $WORKSPACE/archive
+#if [ -f $OUT/utilties/update.zip ]
+#then
+#  cp $OUT/utilties/update.zip $WORKSPACE/archive/recovery.zip
+#fi
+#if [ -f $OUT/recovery.img ]
+#then
+  cp $OUT/boot.img $WORKSPACE/archive
+#fi
 
 
 # archive the build.prop as well
-cat $OUT/system/build.prop > $WORKSPACE/archive/build.prop
+#cat $OUT/system/build.prop > $WORKSPACE/archive/build.prop
 
 chmod -R ugo+r $WORKSPACE/archive
 echo "hihihi" > $WORKSPACE/archive/hihi.txt
