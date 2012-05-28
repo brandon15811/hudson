@@ -92,6 +92,7 @@ cd $WORKSPACE/$REPO_BRANCH
 echo "We are ready to build in $WORKSPACE/$REPO_BRANCH"
 
 . build/envsetup.sh
+rm device/hp/tenderloin/cm.dependencies
 lunch $LUNCH
 check_result lunch failed.
 
