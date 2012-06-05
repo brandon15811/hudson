@@ -141,7 +141,7 @@ fi
 rm -f $OUT/*.zip*
 make $CLEAN_TYPE
 
-#mka -j$CORES bacon
+mka -j$CORES bacon
 #make -j$CORES otapackage
 #check_result Build failed.
 
