@@ -142,8 +142,8 @@ rm -f $OUT/*.zip*
 make $CLEAN_TYPE
 
 #mka -j$CORES bacon
-make -j$CORES otapackage
-check_result Build failed.
+#make -j$CORES otapackage
+#check_result Build failed.
 
 echo "Files in $OUT"
 echo "############################################"
@@ -153,6 +153,13 @@ echo "############################################"
 # Files to keep
 find $OUT/*.zip* | grep ota | xargs rm -f
 cp $OUT/update*.zip* $WORKSPACE/archive
+if [ -f $OUT/obj/PACKAGING/target_files_intermediates/cm_*-target_files-eng.* ]
+  mkdir -p $WORKSPACE/archive/patch
+  cp -r $OUT/obj/PACKAGING/target_files_intermediates/cm_*-target_files-eng.*/BOOT $WORKSPACE/archive/patch
+  cp -r $OUT/obj/PACKAGING/target_files_intermediates/cm_*-target_files-eng.*/META $WORKSPACE/archive/patch
+  cp -r $OUT/obj/PACKAGING/target_files_intermediates/cm_*-target_files-eng.*/OTA $WORKSPACE/archive/patch
+  cp -r $OUT/obj/PACKAGING/target_files_intermediates/cm_*-target_files-eng.*/RECOVERY $WORKSPACE/archive/patch
+fi
 if [ -f $OUT/utilties/update.zip ]
 then
   cp $OUT/utilties/update.zip $WORKSPACE/archive/recovery.zip
