@@ -95,7 +95,7 @@ echo "We are ready to build in $WORKSPACE/$REPO_BRANCH"
 lunch $LUNCH
 check_result lunch failed.
 
-rm -f $OUT/update*.zip*
+#rm -f $OUT/update*.zip*
 
 UNAME=$(uname)
 if [ "$RELEASE_TYPE" = "CM_NIGHTLY" ]
@@ -138,11 +138,11 @@ then
   ccache -M 20G
 fi
 
-rm -f $OUT/*.zip*
-make $CLEAN_TYPE
+#rm -f $OUT/*.zip*
+#make $CLEAN_TYPE
 
-mka -j$CORES bacon
-#make -j$CORES otapackage
+#mka -j$CORES bacon
+make -j$CORES otapackage
 #check_result Build failed.
 
 echo "Files in $OUT"
