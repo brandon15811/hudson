@@ -154,6 +154,7 @@ echo "############################################"
 find $OUT/*.zip* | grep ota | xargs rm -f
 cp $OUT/update*.zip* $WORKSPACE/archive
 if [ -f $OUT/obj/PACKAGING/target_files_intermediates/cm_*-target_files-eng.* ]
+then
   mkdir -p $WORKSPACE/archive/patch
   cp -r $OUT/obj/PACKAGING/target_files_intermediates/cm_*-target_files-eng.*/BOOT $WORKSPACE/archive/patch
   cp -r $OUT/obj/PACKAGING/target_files_intermediates/cm_*-target_files-eng.*/META $WORKSPACE/archive/patch
