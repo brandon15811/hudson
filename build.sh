@@ -142,7 +142,7 @@ fi
 #make $CLEAN_TYPE
 
 #mka -j$CORES bacon
-make -j$CORES otapackage
+#make -j$CORES otapackage
 #check_result Build failed.
 
 echo "Files in $OUT"
