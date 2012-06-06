@@ -169,7 +169,7 @@ if [ -f $OUT/recovery.img ]
 then
   cp $OUT/recovery.img $WORKSPACE/archive
 fi
-if[ -f $WORKSPACE/archive/hudsonBuild.properties ]
+if [ -f $WORKSPACE/archive/hudsonBuild.properties ]
 then
   cp $WORKSPACE/hudsonBuild.properties $WORKSPACE/archive/hudsonBuild.properties
 fi
