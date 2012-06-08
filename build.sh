@@ -95,7 +95,7 @@ echo "We are ready to build in $WORKSPACE/$REPO_BRANCH"
 lunch $LUNCH
 check_result "lunch failed."
 
-#rm -f $OUT/cm*.zip*
+rm -f $OUT/cm*.zip*
 
 UNAME=$(uname)
 if [ "$RELEASE_TYPE" = "CM_NIGHTLY" ]
