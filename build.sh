@@ -138,12 +138,11 @@ then
   ccache -M 20G
 fi
 
-#rm -f $OUT/*.zip*
-#make $CLEAN_TYPE
+rm -f $OUT/*.zip*
+make $CLEAN_TYPE
 
-#mka -j$CORES bacon
-#make -j$CORES otapackage
-#check_result Build failed.
+mka -j$CORES bacon
+check_result Build failed.
 
 echo "Files in $OUT"
 echo "############################################"
@@ -169,11 +168,6 @@ if [ -f $OUT/recovery.img ]
 then
   cp $OUT/recovery.img $WORKSPACE/archive
 fi
-if [ -f $WORKSPACE/hudsonBuild.properties ]
-then
-  cp $WORKSPACE/hudsonBuild.properties $WORKSPACE/archive/hudsonBuild.properties
-fi
-
 # archive the build.prop as well
 cat $OUT/system/build.prop > $WORKSPACE/archive/build.prop
 
