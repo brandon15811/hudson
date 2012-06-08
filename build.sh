@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash -x
 
 function check_result {
   if [ "0" -ne "$?" ]
@@ -44,11 +44,6 @@ then
   exit 1
 fi
 
-if [ -z "$SYNC_PROTO" ]
-then
-  SYNC_PROTO=http
-fi
-
 # colorization fix in Jenkins
 export CL_PFX="\"\033[34m\""
 export CL_INS="\"\033[32m\""
@@ -72,6 +67,8 @@ then
   chmod a+x ~/bin/repo
 fi
 
+# git config --global user.name $(whoami)@$NODE_NAME
+# git config --global user.email jenkins@cyanogenmod.com
 
 # make sure ccache is in PATH
 export PATH="$PATH:/opt/local/bin/:$PWD/prebuilt/$(uname|awk '{print tolower($0)}')-x86/ccache"
@@ -98,13 +95,9 @@ echo "We are ready to build in $WORKSPACE/$REPO_BRANCH"
 lunch $LUNCH
 check_result "lunch failed."
 
-# save manifest used for build (saving revisions as current HEAD)
-repo manifest -o $WORKSPACE/archive/manifest.xml -r
-
-rm -f $OUT/cm-*.zip*
+#rm -f $OUT/cm*.zip*
 
 UNAME=$(uname)
-
 if [ "$RELEASE_TYPE" = "CM_NIGHTLY" ]
 then
   if [ "$REPO_BRANCH" = "gingerbread" ]
@@ -155,7 +148,22 @@ make $CLEAN_TYPE
 mka bacon recoveryzip recoveryimage checkapi
 check_result "Build failed."
 
+echo "Files in $OUT"
+echo "############################################"
+ls -l $OUT
+echo "############################################"
+
+# Files to keep
+find $OUT/*.zip* | grep ota | xargs rm -f
 cp $OUT/cm-*.zip* $WORKSPACE/archive
+if [ -d $OUT/obj/PACKAGING/target_files_intermediates/cm_*-target_files-eng.*/ ]
+then
+  mkdir -p $WORKSPACE/archive/patch
+  cp -r $OUT/obj/PACKAGING/target_files_intermediates/cm_*-target_files-eng.*/BOOT $WORKSPACE/archive/patch
+  cp -r $OUT/obj/PACKAGING/target_files_intermediates/cm_*-target_files-eng.*/META $WORKSPACE/archive/patch
+  cp -r $OUT/obj/PACKAGING/target_files_intermediates/cm_*-target_files-eng.*/OTA $WORKSPACE/archive/patch
+  cp -r $OUT/obj/PACKAGING/target_files_intermediates/cm_*-target_files-eng.*/RECOVERY $WORKSPACE/archive/patch
+fi
 if [ -f $OUT/utilties/update.zip ]
 then
   cp $OUT/utilties/update.zip $WORKSPACE/archive/recovery.zip
@@ -164,14 +172,8 @@ if [ -f $OUT/recovery.img ]
 then
   cp $OUT/recovery.img $WORKSPACE/archive
 fi
-
 # archive the build.prop as well
 ZIP=$(ls $WORKSPACE/archive/cm-*.zip)
 unzip -c $ZIP system/build.prop > $WORKSPACE/archive/build.prop
 
-# CORE: save manifest used for build (saving revisions as current HEAD)
-rm -f .repo/local_manifest.xml
-repo manifest -o $WORKSPACE/archive/core.xml -r
-
-# chmod the files in case UMASK blocks permissions
 chmod -R ugo+r $WORKSPACE/archive
