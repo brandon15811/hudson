@@ -38,39 +38,20 @@ then
   exit 1
 fi
 
-if [ -z "$RELEASE_TYPE" ]
-then
-  echo RELEASE_TYPE not specified
-  exit 1
-fi
-
 # colorization fix in Jenkins
 export CL_PFX="\"\033[34m\""
 export CL_INS="\"\033[32m\""
 export CL_RST="\"\033[0m\""
 
-cd $WORKSPACE
-rm -rf archive
-mkdir -p archive
+rm -rf $WORKSPACE/archive-kernel
+mkdir -p $WORKSPACE/archive-kernel
 export BUILD_NO=$BUILD_NUMBER
 unset BUILD_NUMBER
-export CM_EXTRAVERSION=$BUILD_NO
 
 export PATH=/mnt/bin:~/bin:$PATH
 
 export USE_CCACHE=1
 export BUILD_WITH_COLORS=0
-
-#REPO=$(which repo)
-if [ -z "$REPO" ]
-then
-  mkdir -p ~/bin
-  curl https://dl-ssl.google.com/dl/googlesource/git-repo/repo > ~/bin/repo
-  chmod a+x ~/bin/repo
-fi
-
-# git config --global user.name $(whoami)@$NODE_NAME
-# git config --global user.email jenkins@cyanogenmod.com
 
 # make sure ccache is in PATH
 export PATH="$PATH:/opt/local/bin/:$PWD/prebuilt/$(uname|awk '{print tolower($0)}')-x86/ccache"
@@ -95,40 +76,13 @@ echo "We are ready to build in $WORKSPACE/$REPO_BRANCH"
 
 . build/envsetup.sh
 lunch $LUNCH
-check_result "lunch failed."
-
-rm -f $OUT/cm-*.zip*
+check_result lunch failed.
 
 UNAME=$(uname)
-if [ "$RELEASE_TYPE" = "CM_NIGHTLY" ]
-then
-  if [ "$REPO_BRANCH" = "gingerbread" ]
-  then
-    export CYANOGEN_NIGHTLY=true
-  else
-    export CM_NIGHTLY=true
-  fi
-elif [ "$RELEASE_TYPE" = "CM_EXPERIMENTAL" ]
-then
-  export CM_EXPERIMENTAL=true
-elif [ "$RELEASE_TYPE" = "CM_RELEASE" ]
-then
-  if [ "$REPO_BRANCH" = "gingerbread" ]
-  then
-    export CYANOGEN_RELEASE=true
-  else
-    export CM_RELEASE=true
-  fi
-fi
-
-if [ ! -z "$CM_EXTRAVERSION" ]
-then
-  export CM_EXPERIMENTAL=true
-fi
 
 if [ ! -z "$GERRIT_CHANGES" ]
 then
-  export CM_EXPERIMENTAL=true
+  export CM_SNAPSHOT=true
   IS_HTTP=$(echo $GERRIT_CHANGES | grep http)
   if [ -z "$IS_HTTP" ]
   then
@@ -145,11 +99,11 @@ then
   ccache -M 20G
 fi
 
-rm -f $OUT/*.zip*
+rm -f $OUT/boot.img*
 make $CLEAN_TYPE
 
-mka bacon bacon recoveryzip recoveryimage checkapi
-check_result "Build failed."
+make -j$CORES bootimage
+check_result Build failed.
 
 echo "Files in $OUT"
 echo "############################################"
@@ -157,20 +111,6 @@ ls -l $OUT
 echo "############################################"
 
 # Files to keep
-find $OUT/*.zip* | grep ota | xargs rm -f
-cp $OUT/cm-*.zip* $WORKSPACE/archive
-if [ -f $OUT/utilties/update.zip ]
-then
-  cp $OUT/utilties/update.zip $WORKSPACE/archive/recovery.zip
-fi
-if [ -f $OUT/recovery.img ]
-then
-  cp $OUT/recovery.img $WORKSPACE/archive
-fi
+cp $OUT/boot.img $WORKSPACE/archive-kernel
 
-
-# archive the build.prop as well
-ZIP=$(ls $WORKSPACE/archive/cm-*.zip)
-unzip -p $ZIP system/build.prop > $WORKSPACE/archive/build.prop
-
-chmod -R ugo+r $WORKSPACE/archive
+chmod -R ugo+r $WORKSPACE/archive-kernel

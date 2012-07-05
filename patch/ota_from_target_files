@@ -51,16 +51,10 @@ Usage:  ota_from_target_files [flags] input_target_files output_ota_package
 
   -a  (--aslr_mode)  <on|off>
       Specify whether to turn on ASLR for the package (on by default).
-      
-  -ins  (--info_source)  <dir>
-      Dir containing files for the source zip like misc_info.txt, etc
-      
-  -int  (--info_target)  <dir>
-      Dir containing files for the target zip like misc_info.txt, etc
 
   --backup <boolean>
       Enable or disable the execution of backuptool.sh.
-      Enabled by default.
+      Disabled by default.
 
   --configid <boolean>
      Enable or disable the execution of modelid_cfg.sh.
@@ -68,6 +62,22 @@ Usage:  ota_from_target_files [flags] input_target_files output_ota_package
 
   --override_device <device>
       Override device-specific asserts. Can be a comma-separated list.
+      
+  --recovery_api <int> 
+      Used to determine recovery api version. Default is 2.
+      
+  --system_fs <str>
+      Filesystem type of /system. Default ext4.
+      
+  --system_dev <str>
+      Device block for /system. (/dev/...)
+      
+  --boot_fs <str>
+      Type of block for boot partition. Default is emmc.
+      
+  --boot_dev <str>
+      Device block for the boot partition.
+      
 """
 
 import sys
@@ -96,7 +106,7 @@ import edify_generator
 OPTIONS = common.OPTIONS
 OPTIONS.package_key = None
 OPTIONS.incremental_source = None
-OPTIONS.require_verbatim = set(("system/app/QuickSearchBox.apk"),)
+OPTIONS.require_verbatim = set()
 OPTIONS.prohibit_verbatim = set(("system/build.prop",))
 OPTIONS.patch_threshold = 0.95
 OPTIONS.wipe_user_data = False
@@ -104,10 +114,15 @@ OPTIONS.omit_prereq = False
 OPTIONS.extra_script = None
 OPTIONS.aslr_mode = True
 OPTIONS.worker_threads = 3
-OPTIONS.backuptool = True
+OPTIONS.backuptool = False
 OPTIONS.modelidcfg = True
 OPTIONS.override_device = 'auto'
 OPTIONS.info = None
+OPTIONS.recovery_api = "2"
+OPTIONS.system_fs = "ext4"
+OPTIONS.system_dev = None
+OPTIONS.boot_fs = "emmc"
+OPTIONS.boot_dev = None
 
 def MostPopularKey(d, default):
   """Given a dict, return the key corresponding to the largest
@@ -473,8 +488,11 @@ def LoadSystemFiles(z):
   ZipFile, and return a dict of {filename: File object}."""
   out = {}
   retouch_files = []
+  gapps = open("gapps.list", "r")
+  gappslist = gapps.read().splitlines()
   for info in z.infolist():
-    if info.filename.startswith("system/") and not IsSymlink(info):
+    if info.filename.startswith("system/") and not IsSymlink(info) and not info.filename in gappslist:
+    #if info.filename in hi:
       basefilename = info.filename[7:]
       fn = "system/" + basefilename
       data = z.read(info.filename)
@@ -570,9 +588,9 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
   script.AssertSomeFingerprint(source_fp, target_fp)
 
   source_boot = common.GetBootableImage(
-      "/tmp/boot.img", "boot.img", OPTIONS.info_source, "BOOT")
+      "/tmp/boot.img", "boot.img", OPTIONS.source_tmp, "boot.img")
   target_boot = common.GetBootableImage(
-      "/tmp/boot.img", "boot.img", OPTIONS.info_target, "BOOT")
+      "/tmp/boot.img", "boot.img", OPTIONS.target_tmp, "boot.img")
   updating_boot = (source_boot.data != target_boot.data)
 
   #source_recovery = common.GetBootableImage(
@@ -761,7 +779,7 @@ def WriteIncrementalOTAPackage(target_zip, source_zip, output_zip):
     script.ApplyPatch("/"+fn, "-", tf.size, tf.sha1, sf.sha1, "patch/"+fn+".p")
   script.SetPermissions("/system/build.prop", 0, 0, 0644)
 
-  script.AddToZip(target_zip, output_zip, OPTIONS.info_target + "/OTA/bin/")
+  script.AddToZip(target_zip, output_zip, OPTIONS.target_tmp + "/META-INF/com/google/android/" )
   WriteMetadata(metadata, output_zip)
 
 
@@ -793,16 +811,22 @@ def main(argv):
       OPTIONS.modelidcfg = bool(a.lower() == 'true')
     elif o in ("--override_device"):
       OPTIONS.override_device = a
-    elif o in ("-int", "--info_target"):
-    	OPTIONS.info_target = a
-    elif o in ("-ins", "--info_source"):
-    	OPTIONS.info_source = a
+    elif o in ("--recovery_api"):
+    	OPTIONS.recovery_api = int(a)
+    elif o in ("--system_fs"):
+    	OPTIONS.system_fs = a
+    elif o in ("--system_dev"):
+    	OPTIONS.system_dev = a
+    elif o in ("--boot_fs"):
+    	OPTIONS.boot_fs = a
+    elif o in ("--boot_dev"):
+    	OPTIONS.boot_dev = a
     else:
       return False
     return True
 
   args = common.ParseOptions(argv, __doc__,
-                             extra_opts="b:k:i:d:wne:a:int:ins",
+                             extra_opts="b:k:i:d:wne:a",
                              extra_long_opts=["board_config=",
                                               "package_key=",
                                               "incremental_from=",
@@ -813,13 +837,15 @@ def main(argv):
                                               "aslr_mode=",
                                               "backup=",
                                               "override_device=",
-                                              "info_target=",
-                                              "info_source="],
+                                              "recovery_api=",
+                                              "system_fs=",
+                                              "system_dev=",
+                                              "boot_fs=",
+                                              "boot_dev="],
                              extra_option_handler=option_handler)
 
-  if len(args) <= 2:
+  #if len(args) <= 2:
     #common.Usage(__doc__)
-    print OPTIONS.info
     #sys.exit(1)
 
   if OPTIONS.extra_script is not None:
@@ -829,7 +855,7 @@ def main(argv):
   OPTIONS.input_tmp, input_zip = common.UnzipTemp(args[0])
 
   OPTIONS.target_tmp = OPTIONS.input_tmp
-  OPTIONS.info_dict = common.LoadInfoDict(OPTIONS.info_target, zip)
+  OPTIONS.info_dict = common.LoadInfoDict(zip)
   if OPTIONS.verbose:
     print "--- target info ---"
     common.DumpInfoDict(OPTIONS.info_dict)
@@ -855,7 +881,7 @@ def main(argv):
     OPTIONS.source_tmp, source_zip = common.UnzipTemp(OPTIONS.incremental_source)
     OPTIONS.target_info_dict = OPTIONS.info_dict
 
-    OPTIONS.source_info_dict = common.LoadInfoDict(OPTIONS.info_source, source_zip)
+    OPTIONS.source_info_dict = common.LoadInfoDict(source_zip)
     if OPTIONS.package_key is None:
       OPTIONS.package_key = OPTIONS.source_info_dict.get(
           "default_system_dev_certificate",
