@@ -101,7 +101,7 @@ fi
 
 make $CLEAN_TYPE
 
-make -j$CORES romupdater
+make -j$CORES RomUpdater
 check_result Build failed.
 
 echo "Files in $OUT"
