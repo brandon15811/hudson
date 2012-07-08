@@ -59,6 +59,8 @@ fi
 
 . build/envsetup.sh
 
+cd $REPO_BRANCH
+
 echo Building unpackbootimg.
 lunch generic_armv5-userdebug
 # fix up the path to not force darwin stupidly
