@@ -81,7 +81,7 @@ then
   CORE_BRANCH=$REPO_BRANCH
 fi
 rm -rf .repo/manifests*
-repo init -u git://github.com/CyanogenMod/android.git -b $CORE_BRANCH
+repo init -u $REPO_URL -b $CORE_BRANCH
 check_result "repo init failed."
 
 # make sure ccache is in PATH
@@ -100,7 +100,7 @@ then
 fi
 
 echo Syncing...
-repo sync -d -c > /dev/null
+repo sync -j16 -d -c
 check_result "repo sync failed."
 echo Sync complete.
 
