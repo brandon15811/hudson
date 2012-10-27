@@ -3,7 +3,7 @@
 function check_result {
   if [ "0" -ne "$?" ]
   then
-    echo $1 step failed !
+    echo $1
     exit 1
   fi
 }
@@ -59,35 +59,56 @@ export CM_EXTRAVERSION=$BUILD_NO
 export PATH=/mnt/bin:~/bin:$PATH
 
 export USE_CCACHE=1
+export CCACHE_NLEVELS=4
 export BUILD_WITH_COLORS=0
+export CM_FAST_BUILD=1
 
-#REPO=$(which repo)
-if [ -z "$REPO" ]
+mkdir -p ~/bin
+curl https://dl-ssl.google.com/dl/googlesource/git-repo/repo > ~/bin/repo
+chmod a+x ~/bin/repo
+
+
+#git config --global user.name $(whoami)@$NODE_NAME
+#git config --global user.email jenkins@cyanogenmod.com
+
+mkdir -p $REPO_BRANCH
+cd $REPO_BRANCH
+
+# always force a fresh repo init since we can build off different branches
+# and the "default" upstream branch can get stuck on whatever was init first.
+if [ -z "$CORE_BRANCH" ]
 then
-  mkdir -p ~/bin
-  curl https://dl-ssl.google.com/dl/googlesource/git-repo/repo > ~/bin/repo
-  chmod a+x ~/bin/repo
+  CORE_BRANCH=$REPO_BRANCH
 fi
-
-# git config --global user.name $(whoami)@$NODE_NAME
-# git config --global user.email jenkins@cyanogenmod.com
+rm -rf .repo/manifests*
+repo init -u git://github.com/CyanogenMod/android.git -b $CORE_BRANCH
+check_result "repo init failed."
 
 # make sure ccache is in PATH
+if [ "$REPO_BRANCH" == "jellybean" ]
+then
+export PATH="$PATH:/opt/local/bin/:$PWD/prebuilts/misc/$(uname|awk '{print tolower($0)}')-x86/ccache"
+export CCACHE_DIR=$WORKSPACE/../.jb_ccache
+else
 export PATH="$PATH:/opt/local/bin/:$PWD/prebuilt/$(uname|awk '{print tolower($0)}')-x86/ccache"
+export CCACHE_DIR=$WORKSPACE/../.ics_ccache
+fi
 
 if [ -f ~/.jenkins_profile ]
 then
   . ~/.jenkins_profile
 fi
 
-HUDSON_DIR=$WORKSPACE/hudson
+echo Syncing...
+repo sync -d -c > /dev/null
+check_result "repo sync failed."
+echo Sync complete.
 
-echo "About to do $HUDSON_DIR/$REPO_BRANCH-setup.sh"
-cd $WORKSPACE/$REPO_BRANCH
-if [ -f $HUDSON_DIR/$REPO_BRANCH-setup.sh ]
+echo "About to do $WORKSPACE/hudson/$REPO_BRANCH-setup.sh"
+if [ -f $WORKSPACE/hudson/$REPO_BRANCH-setup.sh ]
 then
-  echo "Doing $HUDSON_DIR/$REPO_BRANCH-setup.sh"
-  $HUDSON_DIR/$REPO_BRANCH-setup.sh $WORKSPACE $REPO_BRANCH
+  echo "Doing $WORKSPACE/hudson/$REPO_BRANCH-setup.sh"
+  $WORKSPACE/hudson/$REPO_BRANCH-setup.sh $WORKSPACE $REPO_BRANCH
 fi
 
 cd $WORKSPACE/$REPO_BRANCH
@@ -97,9 +118,13 @@ echo "We are ready to build in $WORKSPACE/$REPO_BRANCH"
 lunch $LUNCH
 check_result "lunch failed."
 
+# save manifest used for build (saving revisions as current HEAD)
+repo manifest -o $WORKSPACE/archive/manifest.xml -r
+
 rm -f $OUT/cm-*.zip*
 
 UNAME=$(uname)
+
 if [ "$RELEASE_TYPE" = "CM_NIGHTLY" ]
 then
   if [ "$REPO_BRANCH" = "gingerbread" ]
@@ -145,10 +170,9 @@ then
   ccache -M 20G
 fi
 
-rm -f $OUT/*.zip*
 make $CLEAN_TYPE
 
-mka bacon bacon recoveryzip recoveryimage checkapi
+time mka bacon recoveryzip recoveryimage
 check_result "Build failed."
 
 echo "Files in $OUT"
@@ -168,9 +192,13 @@ then
   cp $OUT/recovery.img $WORKSPACE/archive
 fi
 
-
 # archive the build.prop as well
 ZIP=$(ls $WORKSPACE/archive/cm-*.zip)
 unzip -p $ZIP system/build.prop > $WORKSPACE/archive/build.prop
 
+# CORE: save manifest used for build (saving revisions as current HEAD)
+rm -f .repo/local_manifest.xml
+repo manifest -o $WORKSPACE/archive/core.xml -r
+
+# chmod the files in case UMASK blocks permissions
 chmod -R ugo+r $WORKSPACE/archive
