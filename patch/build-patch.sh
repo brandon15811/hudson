@@ -12,7 +12,7 @@ then
 	then
 		unset TARGET_UPDATE_FILE
 		echo "Update zip not found for current job. Exiting."
-		exit 0
+		exit 1
 	else
 		TARGET_UPDATE_FILE=$(basename `ls $JENKINS_HOME/jobs/$DEVICE/builds/$BUILD_NO/archive/archive/update-squished.zip`)
 	fi
@@ -44,6 +44,13 @@ do
 	echo "DEBUG: SOURCE" $SOURCE_UPDATE_FILE
 	echo "DEBUG: TARGET" $TARGET_UPDATE_FILE
 	cd $WORKSPACE/hudson/patch
+	if [ "$BRANCH" = "ics" ]
+        then
+            VERSION=9
+        elif [ "$BRANCH" = "jellybean" ]
+        then
+            VERSION=10
+        fi
 	./ota_from_target_files --verbose \
 	--recovery_api=2 \
 	--system_fs=ext4 \
@@ -53,7 +60,10 @@ do
 	--package_key=$WORKSPACE/hudson/patch/security/testkey \
 	--incremental_from=$JENKINS_HOME/jobs/$DEVICE/builds/`basename $job`/archive/archive/$SOURCE_UPDATE_FILE \
 	$JENKINS_HOME/jobs/$DEVICE/builds/$BUILD_NO/archive/archive/$TARGET_UPDATE_FILE \
-	$WORKSPACE/archive/patch-cm-9-`date +%Y%m%d`-NIGHTLY-`basename $job`-to-$BUILD_NO-olympus-$BUILD_NUMBER.zip
+	$WORKSPACE/archive/patch-cm-$VERSION-`date +%Y%m%d`-NIGHTLY-`basename $job`-to-$BUILD_NO-olympus-$BUILD_NUMBER.zip
+	
+	echo "Copying job `basename $job` build.prop"
+	cp $JENKINS_HOME/jobs/$DEVICE/builds/`basename $job`/archive/archive/build.prop $WORKSPACE/archive/build.prop.`basename $job`
 	echo "####################################################################################"
 	sleep 2
 	
